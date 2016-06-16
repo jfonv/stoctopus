@@ -29,4 +29,17 @@ describe('Stock', () => {
       });
     });
   });
+  describe('#sell', () => {
+    it('should sell stock with provided symbol', (done) => {
+      const result = new Stock('AAPL');
+      result.purchase(50, () => {
+        result.sell(20, (sellErr, totalSold) => {
+          expect(sellErr).to.be.null;
+          expect(result.shares).to.equal(30);
+          expect(totalSold).to.be.gte(1500);
+          done();
+        });
+      });
+    });
+  });
 });
