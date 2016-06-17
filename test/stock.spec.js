@@ -7,10 +7,11 @@ const sinon = require('sinon');
 let clock;
 
 describe('Stock', () => {
-  beforeEach(() => {
+  before(() => {
     clock = sinon.useFakeTimers();
     clock.tick(150);
     nock('http://dev.markitondemand.com/')
+    .persist()
     .get('/MODApis/Api/v2/Quote/json?symbol=AAPL')
     .reply(200, {
       Name: 'Apple',
@@ -70,8 +71,17 @@ describe('Stock', () => {
       });
     });
   });
+  describe('.getQuote', () => {
+    it('should provide current price for symbol', (done) => {
+      Stock.getQuote('aapl', (err, stockPrice) => {
+        expect(err).to.be.null;
+        expect(stockPrice).to.equal(100);
+        done();
+      });
+    });
+  });
   after(() => {
     clock.restore();
-    nock.restore();
+    nock.cleanAll();
   });
 });
