@@ -3,10 +3,13 @@
 const expect = require('chai').expect;
 const Stock = require('../lib/stock');
 const nock = require('nock');
-// const nock = require('sinon');
+const sinon = require('sinon');
+let clock;
 
 describe('Stock', () => {
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+    clock.tick(150);
     nock('http://dev.markitondemand.com/')
     .get('/MODApis/Api/v2/Quote/json?symbol=AAPL')
     .reply(200, {
@@ -14,6 +17,7 @@ describe('Stock', () => {
       LastPrice: 100,
     });
   });
+
   describe('constructor', () => {
     it('should create new stock', () => {
       // const result = new Stock('Apple, Inc.','AAPL',10,500);
@@ -35,7 +39,7 @@ describe('Stock', () => {
         expect(result.name).to.equal('Apple');
         expect(result.shares).to.equal(50);
         expect(result.pPPS).to.equal(100);
-        // expect(result.purchaseDate.getTime()).to.equal();
+        expect(result.purchaseDate.getTime()).to.equal(150);
         done();
       });
     });
@@ -53,18 +57,21 @@ describe('Stock', () => {
       });
     });
   });
-  /*
   describe('#sell', () => {
-    it('should sell stock with provided symbol', (done) => {
+    it('should not sell stock if invalid quantity', (done) => {
       const result = new Stock('AAPL');
       result.purchase(50, () => {
-        result.sell(20, (sellErr, totalSold) => {
-          expect(sellErr).to.be.null;
-          expect(result.shares).to.equal(30);
-          expect(totalSold).to.equal(2000);
+        result.sell(60, (sellErr, totalSold) => {
+          expect(sellErr.message).to.equal('NOT ENOUGH SHARES MAN');
+          expect(result.shares).to.equal(50);
+          expect(totalSold).to.equal(0);
           done();
         });
       });
     });
-  });*/
+  });
+  after(() => {
+    clock.restore();
+    nock.restore();
+  });
 });
